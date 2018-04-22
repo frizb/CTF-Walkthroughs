@@ -836,4 +836,22 @@ uid=1000(pinky) gid=1002(stefano) groups=1002(stefano)
 ```
 However, the current user is still in stefano's group.
 Time to change the user group to pinky.
+```
+pinky@Pinkys-Palace:/usr/local/bin$ newgrp pinky
+pinky@Pinkys-Palace:/usr/local/bin$ id
+uid=1000(pinky) gid=1000(pinky) groups=1000(pinky),1002(stefano)
+```
+Now the contents of backup.sh can be viewed!
+```
+pinky@Pinkys-Palace:/usr/local/bin$ cat backup.sh
+cat backup.sh
+#!/bin/bash
 
+rm /home/demon/backups/backup.tar.gz
+tar cvzf /home/demon/backups/backup.tar.gz /var/www/html
+#
+#
+#
+```
+
+```
