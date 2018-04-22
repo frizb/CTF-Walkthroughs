@@ -20,6 +20,22 @@ https://github.com/frizb/Vanquish
 root@kali:~/Documents# cd Vanquish/
 root@kali:~/Documents/Vanquish# echo 192.168.126.131 >> pinky.txt
 root@kali:~/Documents/Vanquish# python Vanquish2.py -hostFile pinky.txt -verbose -logging
+                  )             (   (       )  
+         (     ( /(   (         )\ ))\ ) ( /(  
+ (   (   )\    )\())( )\     ( (()/(()/( )\()) 
+ )\  )((((_)( ((_)\ )((_)    )\ /(_))(_)|(_)\  
+((_)((_)\ _ )\ _((_|(_)_  _ ((_|_))(_))  _((_) 
+\ \ / /(_)_\(_) \| |/ _ \| | | |_ _/ __|| || | 
+ \ V /  / _ \ | .` | (_) | |_| || |\__ \| __ | 
+  \_/  /_/ \_\|_|\_|\__\_\\___/|___|___/|_||_| 
+Get to shell.
+Vanquish Version: 0.29 Updated: March 18, 2018
+
+Configuration file: config.ini
+Attack plan file:   attackplan.ini
+Output Path:        ./pinky
+Host File:          pinky.txt
+---SNIP---
 ```
 
 With Vanquish running in the background, I begin to review the website content manually while collecting the HTTP requests and responses through BurpSuite.
@@ -249,5 +265,48 @@ PORT      STATE SERVICE VERSION
 
 We now have a webserver (Nginx), an SSH port and what appears to be a console or shell.
 
+Upon further investigation, the new webserver really wants you to use pinkydb rather than the ip address in order to access it. Otherwise, we end up getting a 403: forbidden message.
+
+```
+root@kali:/etc# wget http://192.168.225.130:7654
+--2018-03-07 18:35:40--  http://192.168.225.130:7654/
+Connecting to 192.168.225.130:7654... connected.
+HTTP request sent, awaiting response... 403 Forbidden
+2018-03-07 18:35:40 ERROR 403: Forbidden.
+
+root@kali:/etc# wget http://pinkydb:7654
+--2018-03-07 18:35:51--  http://pinkydb:7654/
+Resolving pinkydb (pinkydb)... 192.168.225.130
+Connecting to pinkydb (pinkydb)|192.168.225.130|:7654... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: unspecified [text/html]
+Saving to: ‘index.html’
+
+index.html                  [ <=>                          ]     134  --.-KB/s    in 0s      
+
+2018-03-07 18:35:51 (20.7 MB/s) - ‘index.html’ saved [134]
+```
+
+So I decided to run Vanquish again against the newly opened up server ports using the pinkdb name rather than the ip address in the background while I manually reviewed the new html server content.
 
 
+```
+root@kali:~/Documents/Vanquish# echo pinkydb >> pinkydb.txt
+root@kali:~/Documents/Vanquish# python Vanquish2.py -hostFile pinkydb.txt -verbose -logging
+ __      __     _   _  ____  _    _ _____  _____ _    _ 
+ \ \    / /\   | \ | |/ __ \| |  | |_   _|/ ____| |  | |
+  \ \  / /  \  |  \| | |  | | |  | | | | | (___ | |__| |
+   \ \/ / /\ \ | . ` | |  | | |  | | | |  \___ \|  __  |
+    \  / ____ \| |\  | |__| | |__| |_| |_ ____) | |  | |
+     \/_/    \_\_| \_|\___\_\\____/|_____|_____/|_|  |_|
+Set your Mertilizers on "deep fat fry".
+Vanquish Version: 0.29 Updated: March 18, 2018
+
+Configuration file: config.ini
+Attack plan file:   attackplan.ini
+Output Path:        ./pinkydb
+Host File:          pinkydb.txt
+---SNIP---
+```
+
+I quickly tried to perform a SQL authentication bypass on the login form with the username `' OR 1=1 --` but this had no effect.
