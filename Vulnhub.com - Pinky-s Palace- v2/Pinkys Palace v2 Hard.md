@@ -1041,3 +1041,36 @@ Now we play the waiting game...
 Nothing happened right away, but I will try to connect to the demon service on 31337 to see if that will trigger it.
 Nope, that didnt do it.
 Hmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm....
+
+## Demon Daemon Buffer Overflow
+
+It does not appear that my shell code is going to execute on its own accord.
+And after playing around with the panel application on my local x64 Kali, I did discover a buffer overflow vulnerability after sending a few thousand A's as the input.
+
+```
+[pid 32404] recv(4, 0x7ffe6fcaf090, 4096, 0
+)     = 4096
+[pid 32404] strcpy(0x7ffe6fcaf010, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"...) = 0x7ffe6fcaf010
+[pid 32404] strlen("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"...) = 4097
+[pid 32404] send(4, 0x7ffe6fcaf010, 4097, 0)     = 4097
+[pid 32404] --- SIGSEGV (Segmentation fault) ---
+[pid 32404] +++ killed by SIGSEGV +++
+[pid 32378] --- SIGCHLD (Child exited) ---
+[pid 32378] <... wait resumed> )                 = 32404
+[pid 32378] fork( <unfinished ...>
+[pid 32444] <... fork resumed> )                 = 0
+[pid 32378] <... fork resumed> )                 = 32444
+[pid 32378] wait(0 <unfinished ...>
+[pid 32444] socket(2, 1, 0)                      = 3
+[pid 32444] setsockopt(3, 1, 2, 0x7ffe6fcb00cc)  = 0
+[pid 32444] htons(0x7a69, 1, 2, 0x7fa1b1130c6a)  = 0x697a
+[pid 32444] memset(0x7ffe6fcb00b8, '\0', 8)      = 0x7ffe6fcb00b8
+[pid 32444] bind(3, 0x7ffe6fcb00b0, 16, 0x7ffe6fcb00b0) = 0
+[pid 32444] listen(3, 5, 16, 0x7fa1b1130797)     = 0
+[pid 32444] accept(3, 0x7ffe6fcb00a0, 0x7ffe6fcb009c, 0x7ffe6fcb00a0
+```
+
+Time to roll up the old sleeves and develop a buffer overflow reverse shell for the **WIN**... Evan's Debugger (edb) to the rescue!
+
+
+
