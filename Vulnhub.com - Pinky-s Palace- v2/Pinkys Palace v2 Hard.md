@@ -575,6 +575,50 @@ Pinks-Palace users include:
 3. demon
 4. stefano
 
+After exploring the Apache folder I was able to find the Wordpress MySQL database credentials:
+```
+cd /var/www/html/apache
+cat wp-config.php
+---SNIP---
+// ** MySQL settings - You can get this info from your web host ** //
+/** The name of the database for WordPress */
+define('DB_NAME', 'pwp_db');
+
+/** MySQL database username */
+define('DB_USER', 'pinkywp');
+
+/** MySQL database password */
+define('DB_PASSWORD', 'pinkydbpass_wp');
+
+/** MySQL hostname */
+define('DB_HOST', 'localhost');
+---SNIP---
+```
+
+After exploring the nginx folder I was able to find the login application's credentials:
+```
+cd /var/www/html/nginx/pinkydb/html
+cat config.php 
+<?php
+	define('DB_HOST', 'localhost');
+	define('DB_USER', 'secretpinkdbuser');
+	define('DB_PASS', 'pinkyssecretdbpass');
+	define('DB_NAME', 'secretsdb');
+	$conn = mysqli_connect(DB_HOST,DB_USER,DB_PASS,DB_NAME);
+?>
+```
+
+There is a local file inclusion (LFI) vulnerability in the pagegap.php file
+```
+stefano@Pinkys-Palace:/var/www/html/nginx/pinkydb/html$ cat pageegap.php 
+<?php
+	include($_GET['1337']);
+?>
+```
+
+This could allow a pivot to www-data user.
+
 ## stefano Privilege Escalation
+
 
 
