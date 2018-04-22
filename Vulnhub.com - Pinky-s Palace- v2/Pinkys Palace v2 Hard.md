@@ -762,7 +762,7 @@ stefano@Pinkys-Palace://home/stefano/tools$ ./qsub Hello from stefano!
 [+] Welcome to Question Submit!
 ```
 
-## Running commands as Pinky
+## Qsub Command Injection as Pinky
 
 Based on the `strings` contents of `qsub` and it's use of `/bin/echo`, it appears we can inject arbitrary bash commands in our message to pinky.
 ```
