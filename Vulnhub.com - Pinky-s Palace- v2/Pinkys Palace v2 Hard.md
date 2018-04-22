@@ -897,3 +897,18 @@ lrwxrwxrwx 1 root  root     9 Mar 17 20:02 .bash_history -> /dev/null
 lrwxrwxrwx 1 root  root     9 Mar 17 20:02 .mysql_history -> /dev/null
 -rw-r--r-- 1 demon demon  675 May 15  2017 .profile
 ```
+
+After reviewing stefanos `bash_history` again, I came across the panel service which I believe is what is running on port 31337.
+```
+demon@Pinkys-Palace:~$ cd /
+demon@Pinkys-Palace:/$ ls 
+ls
+bin     dev   initrd.img      lib32   lost+found  opt   run   sys  var
+boot    etc   initrd.img.old  lib64   media       proc  sbin  tmp  vmlinuz
+daemon  home  lib             libx32  mnt         root  srv   usr  vmlinuz.old
+demon@Pinkys-Palace:/$ cd daemon
+demon@Pinkys-Palace:/daemon$ ls -la
+drwxr-x---  2 demon demon  4096 Mar 17 19:48 .
+drwxr-xr-x 25 root  root   4096 Mar 17 19:31 ..
+-rwxr-x---  1 demon demon 13280 Mar 17 19:48 panel
+```
