@@ -797,5 +797,43 @@ uid=1000(pinky) gid=1002(stefano) groups=1002(stefano)
 
 ## Pinky user access Enumeration
 
+First things first, need to fix this shell and take a look at the home directory for pinky.
+```
+python -c "import pty; pty.spawn('/bin/bash')"
+pinky@Pinkys-Palace://home/stefano/tools$ cd /home/pinky
+pinky@Pinkys-Palace://home/pinky$ ls -la
+drwxr-x--- 3 pinky pinky    4096 Apr 22 12:12 .
+drwxr-xr-x 5 root  root     4096 Mar 17 15:20 ..
+-rw------- 1 pinky pinky      66 Mar 17 21:27 .bash_history
+-rw-r--r-- 1 pinky pinky     220 Mar 17 04:27 .bash_logout
+-rw-r--r-- 1 pinky pinky    3526 Mar 17 04:27 .bashrc
+drwxr-xr-x 2 pinky pinky    4096 Mar 17 04:01 messages
+-rw-r--r-- 1 pinky pinky     675 Mar 17 04:27 .profile
+pinky@Pinkys-Palace:/home/pinky$ cd messages
+pinky@Pinkys-Palace:/home/pinky/messages$ ls
+stefano_msg.txt
+pinky@Pinkys-Palace:/home/pinky/messages$ cat stefano_msg.txt
+Hi it's Stefano!
+Testing!
+Test!
+Hello
+Test
+Test
+pinky@Pinkys-Palace:/home/pinky/messages$ 
+```
 
+During my enumeration of stefano, a file called `backup.sh` was uncovered that could be run, written to and executed by users in the pinky group.
+```
+pinky@Pinkys-Palace://home/pinky$ cd /usr/local/bin
+pinky@Pinkys-Palace:/usr/local/bin$ ls -la
+drwxrwsr-x  2 root  staff 4096 Mar 17 16:31 .
+drwxrwsr-x 10 root  staff 4096 Mar 17 04:24 ..
+-rwxrwx---  1 demon pinky  113 Mar 17 21:24 backup.sh
+pinky@Pinkys-Palace:/usr/local/bin$ cat backup.sh
+cat: backup.sh: Permission denied
+pinky@Pinkys-Palace:/usr/local/bin$ id
+uid=1000(pinky) gid=1002(stefano) groups=1002(stefano)
+```
+However, the current user is still in stefano's group.
+Time to change the user group to pinky.
 
