@@ -661,9 +661,25 @@ stefano@Pinkys-Palace:/var/www/html/nginx/pinkydb/html$ cat pageegap.php
 
 This could allow a pivot to www-data user. The www-data group can view the `qsub` file that is owned by pinky.
 
-## stefano Privilege Escalation
+## Welcome to Question Submit! (qsub)
 
-PHP Local file include vulnerability can allow us to create a shell.  I am mostly interested in reverse engineering the `qsub` file so I created a php include script to simply download that file so I could work on it.
+When we run the `qsub` binary in the tools folder, we are prompted for a password.
+```
+stefano@Pinkys-Palace://home/stefano/tools$ ./qsub
+./qsub <Message>
+stefano@Pinkys-Palace://home/stefano/tools$ ./qsub HELLO FROM Q SUB!
+[+] Input Password: password
+[!] Incorrect Password!
+```
+
+Attempts to trigger a buffer overflow with the password entry input trigger a different response.
+```
+stefano@Pinkys-Palace://home/stefano/tools$ ./qsub Hello!
+[+] Input Password: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+Bad hacker! Go away!
+```
+
+The PHP Local file include (LFI) vulnerability discovered earlier can allow us to create a shell.  I am mostly interested in reverse engineering the `qsub` file so I created a php include script to simply download that file so I could work on it.
 
 ```
 stefano@Pinkys-Palace://home/stefano/tools$ cat <<EOF >>/tmp/getfile.php
