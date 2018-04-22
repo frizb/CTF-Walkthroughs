@@ -696,6 +696,21 @@ From Firefox I downloaded qsub by going to the following URL:
 http://pinkydb:7654/pageegap.php?1337=../../../../../../../tmp/getfile.php
 ```
 
+Running strings against qsub provides some information but no obvious passwords are visible.
+```
+root@kali:~/Downloads# strings qsub
+---SNIP---
+/bin/echo %s >> /home/pinky/messages/stefano_msg.txt
+%s <Message>
+TERM
+[+] Input Password: 
+Bad hacker! Go away!
+[+] Welcome to Question Submit!
+[!] Incorrect Password!
+;*3$"
+GCC: (Debian 6.3.0-18+deb9u1) 6.3.0 20170516
+---SNIP---
+```
 
 
 
