@@ -219,5 +219,35 @@ MAC Address: 00:0C:29:11:5C:81 (VMware)
 Nmap done: 1 IP address (1 host up) scanned in 0.20 seconds
 ```
 
+## Open Sesame
+Nmap was used to perform some port identification on the newly opened ports.
+
+```
+root@kali:~# nmap -sS -A -p80,4655,7654,31337 192.168.225.130
+---SNIP---
+PORT      STATE SERVICE VERSION
+80/tcp    open  http    Apache httpd 2.4.25 ((Debian))
+|_http-generator: WordPress 4.9.4
+|_http-server-header: Apache/2.4.25 (Debian)
+|_http-title: Pinky&#039;s Blog &#8211; Just another WordPress site
+4655/tcp  open  ssh     OpenSSH 7.4p1 Debian 10+deb9u3 (protocol 2.0)
+| ssh-hostkey: 
+|   2048 ac:e6:41:77:60:1f:e8:7c:02:13:ae:a1:33:09:94:b7 (RSA)
+|   256 3a:48:63:f9:d2:07:ea:43:78:7d:e1:93:eb:f1:d2:3a (ECDSA)
+|_  256 b1:10:03:dc:bb:f3:0d:9b:3a:e3:e4:61:03:c8:03:c7 (EdDSA)
+7654/tcp  open  http    nginx 1.10.3
+|_http-server-header: nginx/1.10.3
+|_http-title: 403 Forbidden
+31337/tcp open  Elite?
+| fingerprint-strings: 
+|   DNSStatusRequest, DNSVersionBindReq, GenericLines, NULL, RPCCheck: 
+|     [+] Welcome to The Daemon [+]
+|     This is soon to be our backdoor
+|     into Pinky's Palace.
+---SNIP---
+```
+
+We now have a webserver (Nginx), an SSH port and what appears to be a console or shell.
+
 
 
