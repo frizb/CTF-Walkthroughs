@@ -931,7 +931,43 @@ demon@Pinkys-Palace:/daemon$
 ## Reverse Engineering of the Demon's panel
 
 After spending some time reviewing the assembly code of the panel program, it really does not appear to do much of anything.
-It seems to just accept a socket connection, wait for user input and then terminate the socket connection.
+It seems to just accept a socket connection, waits for user input, displays back whatever the user writes and then terminate the socket connection.
+Had to use the -f parameter on ltrace as the program forks right away.
+```
+root@kali:~/Desktop# ltrace -f ./panel
+[pid 32378] fork()                               = 32379
+[pid 32379] <... fork resumed> )                 = 0
+[pid 32378] wait(0 <unfinished ...>
+[pid 32379] socket(2, 1, 0)                      = 3
+[pid 32379] setsockopt(3, 1, 2, 0x7ffe6fcb00cc)  = 0
+[pid 32379] htons(0x7a69, 1, 2, 0x7fa1b1130c6a)  = 0x697a
+[pid 32379] memset(0x7ffe6fcb00b8, '\0', 8)      = 0x7ffe6fcb00b8
+[pid 32379] bind(3, 0x7ffe6fcb00b0, 16, 0x7ffe6fcb00b0) = 0
+[pid 32379] listen(3, 5, 16, 0x7fa1b1130797)     = 0
+[pid 32379] accept(3, 0x7ffe6fcb00a0, 0x7ffe6fcb009c, 0x7ffe6fcb00a0) = 4
+[pid 32379] send(4, 0x400c78, 31, 0)             = 31
+[pid 32379] send(4, 0x400c98, 33, 0)             = 33
+[pid 32379] send(4, 0x400cb9, 25, 0)             = 25
+[pid 32379] recv(4, 0x7ffe6fcaf090, 4096, 0)     = 3
+[pid 32379] strcpy(0x7ffe6fcaf010, "ls\n")       = 0x7ffe6fcaf010
+[pid 32379] strlen("ls\n")                       = 3
+[pid 32379] send(4, 0x7ffe6fcaf010, 3, 0)        = 3
+[pid 32379] close(4)                             = 0
+[pid 32379] exit(0 <no return ...>
+[pid 32379] +++ exited (status 0) +++
+[pid 32378] --- SIGCHLD (Child exited) ---
+[pid 32378] <... wait resumed> )                 = 32379
+[pid 32378] fork()                               = 32381
+[pid 32381] <... fork resumed> )                 = 0
+[pid 32378] wait(0 <unfinished ...>
+[pid 32381] socket(2, 1, 0)                      = 3
+[pid 32381] setsockopt(3, 1, 2, 0x7ffe6fcb00cc)  = 0
+[pid 32381] htons(0x7a69, 1, 2, 0x7fa1b1130c6a)  = 0x697a
+[pid 32381] memset(0x7ffe6fcb00b8, '\0', 8)      = 0x7ffe6fcb00b8
+[pid 32381] bind(3, 0x7ffe6fcb00b0, 16, 0x7ffe6fcb00b0) = 0
+[pid 32381] listen(3, 5, 16, 0x7fa1b1130797)     = 0
+```
+
 
 However, it IS running as root when I check our processes.  AAAAAAND we can overwrite the file.  
 
