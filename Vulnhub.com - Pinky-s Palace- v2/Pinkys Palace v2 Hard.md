@@ -449,4 +449,132 @@ debug1: Next authentication method: password
 Stefano@192.168.225.130's password: 
 ```
 
-Pinkydb appears to want BOTH an public key and a password
+Pinkydb appears to want BOTH an public key and a password??!!?!?!?!?!??!
+
+After some head scratching and Googling around I remembered that unix usernames are case sensitive so I tried `stefano` rather than `Stefano` and it worked! 
+
+```
+root@kali:~/Documents/Vanquish/pinkydb# ssh -v -i id_rsa stefano@pinkydb -p 4655 
+---SNIP---
+debug1: Trying private key: id_rsa
+Enter passphrase for key 'id_rsa': 
+---SNIP---
+Linux Pinkys-Palace 4.9.0-4-amd64 #1 SMP Debian 4.9.65-3+deb9u1 (2017-12-23) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Sat Mar 17 21:18:01 2018 from 172.19.19.2
+stefano@Pinkys-Palace:~$ 
+```
+
+## I'm IN! [Keanu Reeves voice] - Enumerating stefano's SSH access
+
+Lets see what stefano is all about
+```
+stefano@Pinkys-Palace:~$ id
+uid=1002(stefano) gid=1002(stefano) groups=1002(stefano)
+stefano@Pinkys-Palace:~$ ls -la
+total 32
+drwxr-xr-x 4 stefano stefano 4096 Mar 17 21:27 .
+drwxr-xr-x 5 root    root    4096 Mar 17 15:20 ..
+-rw------- 1 stefano stefano  273 Mar 17 21:27 .bash_history
+-rw-r--r-- 1 stefano stefano  220 May 15  2017 .bash_logout
+-rw-r--r-- 1 stefano stefano 3526 May 15  2017 .bashrc
+-rw-r--r-- 1 stefano stefano  675 May 15  2017 .profile
+drwx------ 2 stefano stefano 4096 Mar 17 04:01 .ssh
+drwxr-xr-x 2 stefano stefano 4096 Mar 17 04:01 tools
+stefano@Pinkys-Palace:~$ 
+```
+
+Looks like stefano has some interesting bash_history
+```
+stefano@Pinkys-Palace:~$ cat .bash_history 
+ls
+cd tools/
+lsd
+ls
+cd /usr/local/bin
+ls
+ls -al
+cat backup.sh 
+cd /home
+ls -al
+cd pinky/
+cd demon/
+cd /daemon/
+cd /root
+gdb
+su
+cd t
+cd
+cd tools/
+ls -al
+cat qsub
+strings qsub 
+./qsub 
+./qsub Testing./qsub 
+env
+./qsub Testingenv
+su
+cleart
+env
+./qsub Test!
+su
+ls -al
+su pinky
+```
+
+And we have a tools folder with a `note.txt` file and the qsub program that was referenced in the bash_history.
+```
+stefano@Pinkys-Palace:~$ cd tools
+stefano@Pinkys-Palace:~/tools$ ls -la
+total 28
+drwxr-xr-x 2 stefano stefano   4096 Mar 17 04:01 .
+drwxr-xr-x 4 stefano stefano   4096 Mar 17 21:27 ..
+-rw-r--r-- 1 stefano stefano     65 Mar 16 04:28 note.txt
+-rwsr----x 1 pinky   www-data 13384 Mar 16 04:40 qsub
+stefano@Pinkys-Palace:~/tools$ cat note.txt 
+Pinky made me this program so I can easily send messages to him.
+stefano@Pinkys-Palace:~/tools$ 
+```
+
+The bash_history also references a backup.sh file which we do not have permission to access or execute.
+```
+stefano@Pinkys-Palace:~/tools$ cd /usr/local/bin
+stefano@Pinkys-Palace:/usr/local/bin$ ls
+backup.sh
+stefano@Pinkys-Palace:/usr/local/bin$ cat backup.sh 
+cat: backup.sh: Permission denied
+stefano@Pinkys-Palace:/usr/local/bin$ ls -la
+total 12
+drwxrwsr-x  2 root  staff 4096 Mar 17 16:31 .
+drwxrwsr-x 10 root  staff 4096 Mar 17 04:24 ..
+-rwxrwx---  1 demon pinky  113 Mar 17 21:24 backup.sh
+stefano@Pinkys-Palace:/usr/local/bin$ 
+```
+
+Viewing the /etc/passwd file reveals that we are not the only users on this server.
+
+```
+stefano@Pinkys-Palace:/usr/local/bin$ cat /etc/passwd
+root:x:0:0:root:/root:/bin/bash
+---SNIP---
+pinky:x:1000:1000:pinky,,,:/home/pinky:/bin/bash
+mysql:x:106:111:MySQL Server,,,:/nonexistent:/bin/false
+sshd:x:107:65534::/run/sshd:/usr/sbin/nologin
+demon:x:1001:1001::/home/demon:/bin/bash
+stefano:x:1002:1002::/home/stefano:/bin/bash
+```
+Pinks-Palace users include:
+1. root
+2. pinky
+3. demon
+4. stefano
+
+## stefano Privilege Escalation
+
+
