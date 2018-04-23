@@ -1072,6 +1072,7 @@ And after playing around with the panel application on my local x64 Kali, I did 
 
 Time to roll up the old sleeves and develop a buffer overflow reverse shell for the **WIN**... Evan's Debugger (edb) to the rescue!
 
+Hmmm, turns out I have never done x64 reverse engineering before and the fork in this process is making things a bit difficult with EDB for some reason. Going to look at using some alternative tools and try again.
 
 ## SIDE NOTE:  Finishing via cheating
 
