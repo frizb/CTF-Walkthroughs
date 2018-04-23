@@ -431,7 +431,7 @@ Enter passphrase for key 'id_rsa':
 Stefano@192.168.225.130's password: 
 Permission denied, please try again.
 ```
-
+**Permission DENIED!!!??!?!??!!**
 Adding -v to ssh to get more details on what is happening.
 
 ```
@@ -449,7 +449,7 @@ debug1: Next authentication method: password
 Stefano@192.168.225.130's password: 
 ```
 
-Pinkydb appears to want BOTH an public key and a password??!!?!?!?!?!??!
+Pinkydb appears to want BOTH an public key and a password?  Hmmmmmmmm....
 
 After some head scratching and Googling around I remembered that unix usernames are case sensitive so I tried `stefano` rather than `Stefano` and it worked! 
 
